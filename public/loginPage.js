@@ -1,75 +1,18 @@
 "use strict"
-const { response } = require("express");
-
- //подключаем строгий режим
-
-class UserForm { //создаем класс UserForm
+//Определяем класс UserForm
+class UserForm {
   constructor() {
     this.loginForm = document.getElementById('login');
     this.registerForm = document.getElementById('register');
 
-    this.loginErrorMessageBox = document.querySelector(".ui.message.negative");
-    this.registerErrorMessageBox = document.querySelector(".ui.message.negative");
+    this.loginErrorMessageBox = this.loginForm.querySelector('.message.negative');
+    this.registerErrorMessageBox = this.registerForm.querySelector('.message.negative');
 
-    //привязка контекста
-    this.loginFormCallback = this.loginFormCallback.bind(this);
-    this.registerFormCallback = this.registerFormCallback.bind(this);
+    this.loginFormAction = this.loginFormAction.bind(this);
+    this.registerFormAction = this.registerFormAction.bind(this);
 
-    //вызов слушателей событий
-    this.addLoginFormListener();
-    this.addRegisterFormListener();
-  }
-
-  //слушатель события submit
-  addLoginFormListener() {
-    this.loginForm.addEventListener("submit",(event) => {
-      event.preventDefault();
-
-      //значения логина и пароля в коллекции 
-      let email = this.loginForm.elements.email.value;
-      let password = this.loginForm.elements.password.value;
-
-      //объявление объекта data, который содержит значения логина и пароля
-      let data = {
-        login: email,
-        password: password,
-      };
-      //передача объекта data внутрь loginFormAction
-      this.loginFormAction(data)
-    });
-  }
-
-  addRegisterFormListener() {
-    this.registerForm.addEventListener("submit", (event) => {
-      event.preventDefault();
-
-      let email = this.registerForm.elements.email.value;
-      let password = this.registerForm.elements.email.value;
-
-      let data = {
-        login: email,
-        password: password,
-      };
-
-      this.registerFormAction(data)
-    });
-  }
-
-  registerFormAction(data) {
-    //вызов ApiConnector
-    ApiConnector.register(data, (response) => {
-      console.log(response);
-
-      if(response.success) {
-        alert("Регистрация прошла успешно");
-        location.reload();
-      } else {
-        let errorMessage =
-        response.error || "Произошла ошибка регистрации"; 
-
-        this.setRegisterErrorMessage(errorMessage);
-      }
-    });
+    this.loginForm.addEventListener('submit', this.loginFormAction);
+    this.registerForm.addEventListener('submit', this.registerFormAction);
   }
 
   setLoginErrorMessage(message) {
@@ -80,46 +23,53 @@ class UserForm { //создаем класс UserForm
     this.registerErrorMessageBox.textContent = message;
   }
 
-  getData(form) {
-    let data = {};
-    let elements = form.elements;
+  loginFormAction(event) {
+    event.preventDefault(); 
 
-    for(let i = 0; i < elements.length; i++) {
-      let element = element[i];
-      if(element.type !== "submit") {
-        data[elements.name] = element.value;
-      }
+    const data = this.getData(this.loginForm); 
+
+    this.loginFormCallback = (data) => {
+      ApiConnector.login(data, (response) => {
+        if (response.success) {
+          location.reload(); 
+        } else {
+          this.setLoginErrorMessage(response.error); 
+        }
+      });
+    };
+
+    
+    this.loginFormCallback(data);
+  }
+
+  registerFormAction(event) {
+    event.preventDefault(); 
+
+    const data = this.getData(this.registerForm); 
+
+    this.registerFormCallback = (data) => {
+      ApiConnector.register(data, (response) => {
+        if (response.success) {
+          location.reload(); 
+        } else {
+          this.setRegisterErrorMessage(response.error); 
+        }
+      });
+    };
+
+    this.registerFormCallback(data);
+  }
+
+  getData(form) {
+    const formData = new FormData(form);
+    const data = {};
+
+    for (let [name, value] of formData.entries()) {
+      data[name] = value;
     }
 
     return data;
   }
-  
 }
 
-const form = new UserForm();
-
-
-class ApiConnector {
-  static login(data, callback) {
-    setTimeout(() => {
-      if(data.password === "password") {
-        callback({success: true});
-      } else {
-        callback({success: false, error: "Неверный логин или пароль"});
-      }
-    }, 1000);
-  }
-
-  static register(data, callback) {
-    setTimeout(() => {
-      if(data.password.length >= 6) {
-        callback({success: true});
-      } else {
-        callback({
-          success: false,
-          error: "Пароль должен содержать не менее 6 символов",
-        });
-      }
-    }, 1000)
-  }
-}
+const userForm = new UserForm();
