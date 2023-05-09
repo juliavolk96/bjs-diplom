@@ -93,8 +93,33 @@ class UserForm { //создаем класс UserForm
 
     return data;
   }
-
-
   
 }
 
+const form = new UserForm();
+
+
+class ApiConnector {
+  static login(data, callback) {
+    setTimeout(() => {
+      if(data.password === "password") {
+        callback({success: true});
+      } else {
+        callback({success: false, error: "Неверный логин или пароль"});
+      }
+    }, 1000);
+  }
+
+  static register(data, callback) {
+    setTimeout(() => {
+      if(data.password.length >= 6) {
+        callback({success: true});
+      } else {
+        callback({
+          success: false,
+          error: "Пароль должен содержать не менее 6 символов",
+        });
+      }
+    }, 1000)
+  }
+}
