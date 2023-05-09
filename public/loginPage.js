@@ -1,75 +1,35 @@
 "use strict"
-//Определяем класс UserForm
-class UserForm {
-  constructor() {
-    this.loginForm = document.getElementById('login');
-    this.registerForm = document.getElementById('register');
 
-    this.loginErrorMessageBox = this.loginForm.querySelector('.message.negative');
-    this.registerErrorMessageBox = this.registerForm.querySelector('.message.negative');
+//не сразу поняла задание
 
-    this.loginFormAction = this.loginFormAction.bind(this);
-    this.registerFormAction = this.registerFormAction.bind(this);
+const userForm = new UserForm();
 
-    this.loginForm.addEventListener('submit', this.loginFormAction);
-    this.registerForm.addEventListener('submit', this.registerFormAction);
-  }
+userForm.loginFormCallback = myFunc;
 
-  setLoginErrorMessage(message) {
-    this.loginErrorMessageBox.textContent = message;
-  }
+function myFunc(data) {
+  ApiConnector.login(data, consoleChecker)
+}
 
-  setRegisterErrorMessage(message) {
-    this.registerErrorMessageBox.textContent = message;
-  }
-
-  loginFormAction(event) {
-    event.preventDefault(); 
-
-    const data = this.getData(this.loginForm); 
-
-    this.loginFormCallback = (data) => {
-      ApiConnector.login(data, (response) => {
-        if (response.success) {
-          location.reload(); 
-        } else {
-          this.setLoginErrorMessage(response.error); 
-        }
-      });
-    };
-
-    
-    this.loginFormCallback(data);
-  }
-
-  registerFormAction(event) {
-    event.preventDefault(); 
-
-    const data = this.getData(this.registerForm); 
-
-    this.registerFormCallback = (data) => {
-      ApiConnector.register(data, (response) => {
-        if (response.success) {
-          location.reload(); 
-        } else {
-          this.setRegisterErrorMessage(response.error); 
-        }
-      });
-    };
-
-    this.registerFormCallback(data);
-  }
-
-  getData(form) {
-    const formData = new FormData(form);
-    const data = {};
-
-    for (let [name, value] of formData.entries()) {
-      data[name] = value;
-    }
-
-    return data;
+function consoleChecker(response) {
+  console.log(response)
+  if (response.success) {
+    location.reload()
+  } else {
+    alert(response.error)
   }
 }
 
-const userForm = new UserForm();
+userForm.registerFormCallback = registration;
+
+function registration(data) {
+  ApiConnector.register(data, registerChecker);
+}
+
+function registerChecker(response) {
+  if (response.success) {
+    myFunc(data); 
+    location.reload()
+  } else {
+    alert(response.error);
+  }
+}
