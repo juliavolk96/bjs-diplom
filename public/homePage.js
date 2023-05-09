@@ -1,43 +1,18 @@
-const { response } = require("express");
+//LogoutButton
 
-//создаем объекта класса LogoutButton
-let logoutButton = new LogoutButton();
+const logoutButton = new LogoutButton();
+logoutButton.action = async () => {
+  try {
+    const response = await fetch('/logout', {
+      method: 'POST',
+    });
 
-logoutButton.action = () => {
-  ApiConnector.logout((response) => {
-    if (response.success) {
+    if (response.ok) {
       location.reload();
+    } else {
+      console.log('Ошибка запроса деавторизации');
     }
-  });
+  } catch (error) {
+    console.log('Ошибка при выполнении запроса деавторизации', error);
+  }
 };
-
-logoutButton.element.addEventListener('click', logoutButton.action);
-
-//получаем текущего пользователя
-function getCurrentUser(callback) {
-  ApiConnector.current((response) => {
-    if (response.success) {
-      callback(null, response.data);
-    } else {
-      callback(response.error, null);
-    }
-  });
-}
-
-function showProfile(user) {
-  let userName = document.querySelector('.profile-name');
-  userName.textContent = user.name;
-  let userBalance = document.querySelector('.profile-balance');
-  userBalance.textContent = user.balance;
-}
-
-//получаем текущие курсы валют
-function getCurrentRates(callback) {
-  ApiConnector.getStocks((response) => {
-    if(response.success) {
-      callback(null, response.data);
-    } else {
-      callback(response.error, null)
-    }
-  });
-}
