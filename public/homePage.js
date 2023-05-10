@@ -125,4 +125,28 @@ moneyManager.sendMoneyCallback = async (data) => {
   }
 };
 
+//работа с избранным
+let favoritesWidget = new FavoritesWidget();
+
+//1) Запрос начального списка избранного
+async function getFavorites() {
+  try {
+    let response = await fetch('/get-favorites');
+    if (response.ok) {
+      let data = await response.json();
+
+      favoritesWidget.clearTable();
+
+      favoritesWidget.fillTable(data);
+
+      moneyManager.updateUserList(data);
+    } else {
+      favoritesWidget.setMessage(false, 'Ошибка при получении списка избранного');
+    }
+  } catch(error) {
+    console.log('Ошибка при выполнении запроса на получение списка избранного:', error);
+  }
+}
+
+// getFavorites();
 
