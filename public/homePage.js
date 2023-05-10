@@ -101,3 +101,28 @@ moneyManager.conversionMoneyCallback = async(data) => {
     console.error('Ошибка при выполнении запроса на конвертацию:', error);
   }
 };
+
+//3) перевод валюты 
+moneyManager.sendMoneyCallback = async (data) => {
+  try {
+    let response = await fetch('/transfer-money', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if(response.ok) {
+      let responseData = await response.json();
+      ProfileWidget.showProfile(responseData);
+      moneyManager.setMessage(true, 'Перевод выполнен успешно');
+    } else {
+      moneyManager.setMessage(false, 'Ошибка при выполнении перевода');
+    }
+  } catch(error) {
+    console.error('Ошибка при выполнении запроса на перевод:', error);
+  }
+};
+
+
