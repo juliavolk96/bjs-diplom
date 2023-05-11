@@ -148,7 +148,7 @@ async function getFavorites() {
   }
 }
 
-// getFavorites();
+getFavorites();
 
 //2) добавление в список с избранным
 favoritesWidget.addUserCallback = async(userData) => {
