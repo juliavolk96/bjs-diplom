@@ -150,3 +150,49 @@ async function getFavorites() {
 
 // getFavorites();
 
+//2) добавление в список с избранным
+favoritesWidget.addUserCallback = async(userData) => {
+  try {
+    let response = await fetch('/add-user-to-favorites', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(userData),
+    });
+
+    if(response.ok) {
+      await getFavorites();
+
+      favoritesWidget.setMessage(true, 'Пользователь успешно добавлен в список избранных');
+    } else {
+      favoritesWidget.setMessage(false, 'Ошибка при добавлении пользователя в список избранных');
+    }
+
+  } catch(error) {
+    console.error('Ошибка при выполнении запроса на добавление пользователя в список избранных:', error);
+  }
+};
+
+//удаление пользователя 
+favoritesWidget.removeUserCallback = async (userId) => {
+  try {
+    let response = await fetch('/remove-user-from-favorites', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId }),
+    });
+
+    if (response.ok) {
+      await getFavorites();
+
+      favoritesWidget.setMessage(true, 'Пользователь успешно удален из списка избранных');
+    } else {
+      favoritesWidget.setMessage(false, 'Ошибка при удалении пользователя из списка избранных');
+    }
+  } catch (error) {
+    console.error('Ошибка при выполнении запроса на удаление пользователя из списка избранных:', error);
+  }
+};
