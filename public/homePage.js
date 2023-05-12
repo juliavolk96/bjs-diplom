@@ -1,198 +1,112 @@
 //LogoutButton
-
 const logoutButton = new LogoutButton();
-logoutButton.action = async () => {
-  try {
-    const response = await fetch('/logout', {
-      method: 'POST',
-    });
-
-    if (response.ok) {
-      location.reload();
-    } else {
-      console.log('Ошибка запроса деавторизации');
-    }
-  } catch (error) {
-    console.log('Ошибка при выполнении запроса деавторизации', error);
-  }
+logoutButton.action = () => {
+  ApiConnector.logout((response) => {
+    if (response.success) location.reload();
+  });
 };
 
-//запрос на получение текущего пользователя 
-ApiConnector.current((data) => {
-  console.log(data);
+//получение информации о пользователе
+ApiConnector.current((response) => {
+  if (response.success) {
+    ProfileWidget.showProfile(response.data);
+  }
 });
 
-ApiConnector.current((data) => {
-  if (data.success) { //если ответ успешный, то вызовите метод отображения данных профиля (ProfileWidget.showProfile)
-    ProfileWidget.showProfile(data);
-  } 
-});
 
 //получение текущих курсов валют
-let ratesBoard = new RatesBoard();
+const ratesBoard = new RatesBoard();
 
-async function fetchCurrencyRates() {
-  try {
-    let response = await fetch('/currency-rates');
-    if(response.ok) {
-      let data = await response.json();
+function getExchangeRates() {
+  ApiConnector.getStocks((response) => {
+    if (response.success) {
       ratesBoard.clearTable();
-      ratesBoard.fillTable(data);
-    } else {
-      console.error('Ошибка при получении курсов валют:', response.status);
+      ratesBoard.fillTable(response.data);
     }
-  } catch(error) {
-    console.error('Ошибка при получении курсов валют:', error);
-  }
+  });
 }
 
-//вызыываем функцию
-fetchCurrencyRates();
-//устанавливаем интервал
-setInterval(fetchCurrencyRates, 60000);
+getExchangeRates();
+
+setInterval(getExchangeRates, 60000);
 
 //реализуем операции с деньгами
 //1) пополнение баланса
-let moneyManager = new MoneyManager();
+const moneyManager = new MoneyManager();
 
-moneyManager.addMoneyCallback = async (data) => {
-  try {
-    let response = await fetch('/add-money', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
-
-    if(response.ok) {
-      let responseData = await response.json();
-
-      ProfileWidget.showProfile(responseData);
-
-      moneyManager.setMessage(true, 'Баланс успешно пополнен');
+moneyManager.addMoneyCallback = (data) => {
+  ApiConnector.addMoney(data, (response) => {
+    if (response.success) {
+      ProfileWidget.showProfile(response.data);
+      moneyManager.setMessage(true, 'Баланс успешно пополнен!');
     } else {
-      moneyManager.setMessage(false, 'Ошибка при пополнении баланса');
+      moneyManager.setMessage(false, response.error);
     }
-  } catch (error) {
-    console.error('Ошибка при выполнении запроса на пополнение баланса:', error);
-  }
+  });
 };
 
 //2) конвертация валюты
-moneyManager.conversionMoneyCallback = async(data) => {
-  try {
-    let response = await fetch('/convert-money', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
-
-    if(response.ok) {
-      let responseData = await response.json();
-      ProfileWidget.showProfile(responseData);
-      moneyManager.setMessage(true, 'Конвертация выполнена успешно');
+moneyManager.conversionMoneyCallback = (data) => {
+  ApiConnector.convertMoney(data, (response) => {
+    if (response.success) {
+      ProfileWidget.showProfile(response.data);
+      moneyManager.setMessage(true, 'Конвертация выполнена успешно!');
     } else {
-      moneyManager.setMessage(false, 'Ошибка при выполнении конвертации');
+      moneyManager.setMessage(false, response.error);
     }
-  } catch(error) {
-    console.error('Ошибка при выполнении запроса на конвертацию:', error);
-  }
+  });
 };
 
 //3) перевод валюты 
-moneyManager.sendMoneyCallback = async (data) => {
-  try {
-    let response = await fetch('/transfer-money', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
-
-    if(response.ok) {
-      let responseData = await response.json();
-      ProfileWidget.showProfile(responseData);
-      moneyManager.setMessage(true, 'Перевод выполнен успешно');
+moneyManager.sendMoneyCallback = (data) => {
+  ApiConnector.transferMoney(data, (response) => {
+    if (response.success) {
+      ProfileWidget.showProfile(response.data);
+      moneyManager.setMessage(true, 'Перевод выполнен успешно!');
     } else {
-      moneyManager.setMessage(false, 'Ошибка при выполнении перевода');
+      moneyManager.setMessage(false, response.error);
     }
-  } catch(error) {
-    console.error('Ошибка при выполнении запроса на перевод:', error);
-  }
+  });
 };
 
 //работа с избранным
-let favoritesWidget = new FavoritesWidget();
+const favoritesWidget = new FavoritesWidget();
 
 //1) Запрос начального списка избранного
-async function getFavorites() {
-  try {
-    let response = await fetch('/get-favorites');
-    if (response.ok) {
-      let data = await response.json();
-
-      favoritesWidget.clearTable();
-
-      favoritesWidget.fillTable(data);
-
-      moneyManager.updateUserList(data);
-    } else {
-      favoritesWidget.setMessage(false, 'Ошибка при получении списка избранного');
-    }
-  } catch(error) {
-    console.log('Ошибка при выполнении запроса на получение списка избранного:', error);
+getFavorites(function(response) {
+  if (response.success) {
+    favoritesWidget.clearTable(); 
+    favoritesWidget.fillTable(response.data); 
+  } else {
+    favoritesWidget.setMessage(false, response.message);
   }
-}
+});
 
-getFavorites();
 
 //2) добавление в список с избранным
-favoritesWidget.addUserCallback = async(userData) => {
-  try {
-    let response = await fetch('/add-user-to-favorites', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(userData),
-    });
-
-    if(response.ok) {
-      await getFavorites();
-
-      favoritesWidget.setMessage(true, 'Пользователь успешно добавлен в список избранных');
+favoritesWidget.addUserCallback = function(userData) {
+  ApiConnector.addUserToFavorites(userData, function(response) {
+    if (response.success) {
+      favoritesWidget.clearTable();
+      favoritesWidget.fillTable(response.data);
+      favoritesWidget.updateUsersList(response.data);
+      favoritesWidget.setMessage(true, "Пользователь успешно добавлен в избранное.");
     } else {
-      favoritesWidget.setMessage(false, 'Ошибка при добавлении пользователя в список избранных');
+      favoritesWidget.setMessage(false, response.message);
     }
-
-  } catch(error) {
-    console.error('Ошибка при выполнении запроса на добавление пользователя в список избранных:', error);
-  }
+  });
 };
 
 //удаление пользователя 
-favoritesWidget.removeUserCallback = async (userId) => {
-  try {
-    let response = await fetch('/remove-user-from-favorites', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ userId }),
-    });
-
-    if (response.ok) {
-      await getFavorites();
-
-      favoritesWidget.setMessage(true, 'Пользователь успешно удален из списка избранных');
+favoritesWidget.removeUserCallback = function(userId) {
+  removeUserFromFavorites(userId, function(response) {
+    if (response.success) {
+      favoritesWidget.clearTable();
+      favoritesWidget.fillTable(response.data);
+      favoritesWidget.updateUsersList(response.data);
+      favoritesWidget.setMessage(true, "Пользователь успешно удален из избранного.");
     } else {
-      favoritesWidget.setMessage(false, 'Ошибка при удалении пользователя из списка избранных');
+      favoritesWidget.setMessage(false, response.message);
     }
-  } catch (error) {
-    console.error('Ошибка при выполнении запроса на удаление пользователя из списка избранных:', error);
-  }
+  });
 };
