@@ -73,10 +73,10 @@ moneyManager.sendMoneyCallback = (data) => {
 const favoritesWidget = new FavoritesWidget();
 
 //1) Запрос начального списка избранного
-getFavorites(function(response) {
+ApiConnector.getFavorites((response) => {
   if (response.success) {
-    favoritesWidget.clearTable(); 
-    favoritesWidget.fillTable(response.data); 
+    favoritesWidget.clearTable();
+    favoritesWidget.fillTable(response.data);
   } else {
     favoritesWidget.setMessage(false, response.message);
   }
