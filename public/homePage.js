@@ -99,7 +99,7 @@ favoritesWidget.addUserCallback = function(userData) {
 
 //удаление пользователя 
 favoritesWidget.removeUserCallback = function(userId) {
-  removeUserFromFavorites(userId, function(response) {
+  ApiConnector.removeUserFromFavorites(userId, function(response) {
     if (response.success) {
       favoritesWidget.clearTable();
       favoritesWidget.fillTable(response.data);
