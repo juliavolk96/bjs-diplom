@@ -89,7 +89,7 @@ favoritesWidget.addUserCallback = function(userData) {
     if (response.success) {
       favoritesWidget.clearTable();
       favoritesWidget.fillTable(response.data);
-      favoritesWidget.updateUsersList(response.data);
+      moneyManager.updateUsersList(response.data);
       favoritesWidget.setMessage(true, "Пользователь успешно добавлен в избранное.");
     } else {
       favoritesWidget.setMessage(false, response.message);
@@ -103,7 +103,7 @@ favoritesWidget.removeUserCallback = function(userId) {
     if (response.success) {
       favoritesWidget.clearTable();
       favoritesWidget.fillTable(response.data);
-      favoritesWidget.updateUsersList(response.data);
+      moneyManager.updateUsersList(response.data);
       favoritesWidget.setMessage(true, "Пользователь успешно удален из избранного.");
     } else {
       favoritesWidget.setMessage(false, response.message);
