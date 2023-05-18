@@ -1,7 +1,5 @@
 "use strict"
 
-//не сразу поняла задание
-
 const userForm = new UserForm();
 
 userForm.loginFormCallback = myFunc;
@@ -15,7 +13,7 @@ function consoleChecker(response) {
   if (response.success) {
     location.reload()
   } else {
-    alert(response.error)
+    userForm.setLoginErrorMessage(response.error)
   }
 }
 
@@ -30,6 +28,6 @@ function registerChecker(response) {
     myFunc(data); 
     location.reload()
   } else {
-    alert(response.error);
+    userForm.setRegisterErrorMessage(response.error);
   }
 }
